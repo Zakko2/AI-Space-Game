@@ -4,9 +4,16 @@ import random
 # Initialize Pygame
 pygame.init()
 
+# Get the user's display size
+info = pygame.display.Info()
+screen_width, screen_height = info.current_w, info.current_h
+
+# Calculate the aspect ratio
+aspect_ratio = screen_width / screen_height
+
 # Set up the display
-screen_width = 800
 screen_height = 600
+screen_width = round(screen_height*aspect_ratio)
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Space Shooter")
 
@@ -26,6 +33,9 @@ enemy_image = pygame.transform.scale(enemy_image, (50, 38))
 
 bullet_image = pygame.image.load('images/bullet.png').convert_alpha()
 bullet_image = pygame.transform.scale(bullet_image, (10, 20))
+
+background_image = pygame.image.load('images/background.png').convert()
+bullet_image = pygame.transform.scale(bullet_image, (screen_width, screen_height))
 
 
 # Define the classes
@@ -83,7 +93,7 @@ class Player(pygame.sprite.Sprite):
 class Enemy(Entity):
     def __init__(self, x, y):
         super().__init__(pygame.Surface.copy(enemy_image), x, y)
-        self.speedy = random.randint(1, 4)
+        self.speedy = random.uniform(0.5, 4.5)
         self.alpha = 0  # Start with transparency at 0
         self.image.set_alpha(self.alpha)  # Set the transparency of the image
         self.mask = pygame.mask.from_surface(enemy_image)
@@ -124,10 +134,10 @@ class Star(pygame.sprite.Sprite):
         self.rect.y = y
 
 class Starfield:
-    def __init__(self, screen_width, screen_height):
+    def __init__(self, screen_width, screen_height, speed):
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.speed = 1
+        self.speed = speed
         self.stars = pygame.sprite.Group()
 
         # Create the stars
@@ -162,7 +172,10 @@ def toggle_fullscreen():
 all_sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
-starfield = Starfield(screen_width, screen_height)
+starfield1 = Starfield(screen_width, screen_height, speed=random.uniform(0.5, 1.5))
+starfield2 = Starfield(screen_width, screen_height, speed=random.uniform(1.5, 2.5))
+starfield3 = Starfield(screen_width, screen_height, speed=random.uniform(2.5, 3.5))
+
 
 # Set up the player
 player = Player()
@@ -183,8 +196,8 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 player.shoot()
-            elif event.key == pygame.K_f:
-                toggle_fullscreen()
+            #elif event.key == pygame.K_f:
+            #    toggle_fullscreen()
 
     # Handle user input
     keys = pygame.key.get_pressed()
@@ -194,7 +207,9 @@ while running:
         player.move_right()
 
     # Update the game state
-    starfield.update()
+    starfield1.update()
+    starfield2.update()
+    starfield3.update()
     all_sprites.update()
 
     # Spawn enemies
@@ -215,7 +230,10 @@ while running:
             running = False
 
     # Draw the screen
-    screen.fill(black)
+    screen.blit(background_image, (0, 0))
+    starfield1.draw(screen)
+    starfield2.draw(screen)
+    starfield3.draw(screen)
     all_sprites.draw(screen)
     score_text = font.render("Score: " + str(player.score), True, white)
     screen.blit(score_text, (10, 10))
