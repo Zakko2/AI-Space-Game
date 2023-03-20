@@ -54,9 +54,11 @@ class Player(pygame.sprite.Sprite):
         self.score = 0
         self.lives = 3
         self.fire_timer = 0
+        self.mask = pygame.mask.from_surface(player_image)
 
     def update(self):
         self.rect.clamp_ip(screen.get_rect())
+        self.mask = pygame.mask.from_surface(player_image)
 
     def move_left(self):
         self.rect.x -= self.speed
@@ -80,28 +82,87 @@ class Player(pygame.sprite.Sprite):
 
 class Enemy(Entity):
     def __init__(self, x, y):
-        super().__init__(enemy_image, x, y)
+        super().__init__(pygame.Surface.copy(enemy_image), x, y)
         self.speedy = random.randint(1, 4)
+        self.alpha = 0  # Start with transparency at 0
+        self.image.set_alpha(self.alpha)  # Set the transparency of the image
+        self.mask = pygame.mask.from_surface(enemy_image)
 
     def update(self):
         self.rect.y += self.speedy
+        if self.alpha < 255:  # Increase transparency gradually
+            self.alpha += 2
+            if self.alpha > 255:
+                self.alpha = 255
+            self.image.set_alpha(self.alpha)  # Set the transparency of the image
+
         if self.rect.top > screen_height:
             self.kill()
+
+        self.mask = pygame.mask.from_surface(enemy_image)
+
 
 class Bullet(Entity):
     def __init__(self, x, y):
         super().__init__(bullet_image, x, y)
         self.speedy = -10
+        self.mask = pygame.mask.from_surface(bullet_image)
 
     def update(self):
         self.rect.y += self.speedy
         if self.rect.bottom < 0:
             self.kill()
+        self.mask = pygame.mask.from_surface(bullet_image)
+
+class Star(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((2, 2))
+        self.image.fill((255, 255, 255))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+class Starfield:
+    def __init__(self, screen_width, screen_height):
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        self.speed = 1
+        self.stars = pygame.sprite.Group()
+
+        # Create the stars
+        for i in range(100):
+            x = random.randint(0, self.screen_width)
+            y = random.randint(0, self.screen_height)
+            star = Star(x, y)
+            self.stars.add(star)
+
+    def update(self):
+        # Move the stars down
+        for star in self.stars:
+            star.rect.y += self.speed
+
+            # If the star goes off the bottom of the screen, wrap it around to the top
+            if star.rect.top > self.screen_height:
+                star.rect.y = random.randint(-10, 0)
+
+    def draw(self, screen):
+        self.stars.draw(screen)
+
+def toggle_fullscreen():
+    global fullscreen, screen, screen_width, screen_height
+
+    fullscreen = not fullscreen
+    if fullscreen:
+        screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode((screen_width, screen_height))
 
 # Set up the sprite groups
 all_sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
+starfield = Starfield(screen_width, screen_height)
 
 # Set up the player
 player = Player()
@@ -111,6 +172,7 @@ all_sprites.add(player)
 clock = pygame.time.Clock()
 
 # Set up the game loop
+print("Starting game...")
 running = True
 fullscreen = False
 while running:
@@ -132,6 +194,7 @@ while running:
         player.move_right()
 
     # Update the game state
+    starfield.update()
     all_sprites.update()
 
     # Spawn enemies
@@ -165,18 +228,7 @@ while running:
 
 # Quit Pygame
 pygame.quit()
-
-# Quit Pygame
-pygame.quit()
-
-def toggle_fullscreen():
-    global fullscreen, screen, screen_width, screen_height
-
-    fullscreen = not fullscreen
-    if fullscreen:
-        screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
-    else:
-        screen = pygame.display.set_mode((screen_width, screen_height))
+print("Game exited.")
 
 # Delay to show the game window
 pygame.time.wait(2000)
