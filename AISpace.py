@@ -18,13 +18,13 @@ black = (0, 0, 0)
 font = pygame.font.Font(None, 36)
 
 # Load images
-player_image = pygame.image.load('player.png').convert_alpha()
+player_image = pygame.image.load('images/player.png').convert_alpha()
 player_image = pygame.transform.scale(player_image, (50, 38))
 
-enemy_image = pygame.image.load('enemy.png').convert_alpha()
+enemy_image = pygame.image.load('images/enemy.png').convert_alpha()
 enemy_image = pygame.transform.scale(enemy_image, (50, 38))
 
-bullet_image = pygame.image.load('bullet.png').convert_alpha()
+bullet_image = pygame.image.load('images/bullet.png').convert_alpha()
 bullet_image = pygame.transform.scale(bullet_image, (10, 20))
 
 
@@ -112,11 +112,17 @@ clock = pygame.time.Clock()
 
 # Set up the game loop
 running = True
+fullscreen = False
 while running:
     # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.shoot()
+            elif event.key == pygame.K_f:
+                toggle_fullscreen()
 
     # Handle user input
     keys = pygame.key.get_pressed()
@@ -124,8 +130,6 @@ while running:
         player.move_left()
     if keys[pygame.K_RIGHT]:
         player.move_right()
-    if keys[pygame.K_SPACE]:
-        player.shoot()
 
     # Update the game state
     all_sprites.update()
@@ -159,6 +163,12 @@ while running:
     # Cap the frame rate
     clock.tick(60)
 
+# Quit Pygame
+pygame.quit()
+
+# Quit Pygame
+pygame.quit()
+
 def toggle_fullscreen():
     global fullscreen, screen, screen_width, screen_height
 
@@ -167,10 +177,6 @@ def toggle_fullscreen():
         screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
     else:
         screen = pygame.display.set_mode((screen_width, screen_height))
-
-# Quit Pygame
-pygame.quit()
-
 
 # Delay to show the game window
 pygame.time.wait(2000)
