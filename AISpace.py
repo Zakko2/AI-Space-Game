@@ -2,7 +2,16 @@ import pygame
 import random
 
 # Initialize Pygame
+print("initializing pygame")
 pygame.init()
+print("pygame started")
+
+# Define constants
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+FPS = 60
+INTRO_SCREEN_DURATION = 5000  # in milliseconds
+FADE_DURATION = 3000  # in milliseconds
 
 # Get the user's display size
 info = pygame.display.Info()
@@ -12,17 +21,18 @@ screen_width, screen_height = info.current_w, info.current_h
 aspect_ratio = screen_width / screen_height
 
 # Set up the display
-screen_height = 600
+screen_height = SCREEN_HEIGHT
 screen_width = round(screen_height*aspect_ratio)
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Space Shooter")
+pygame.display.set_caption("Soale Stjas (AI Space Game)")
 
 # Set up the colors
 white = (255, 255, 255)
 black = (0, 0, 0)
 
 # Set up the fonts
-font = pygame.font.Font(None, 36)
+font_path = "fonts/ARCADE_I.TTF"
+font = pygame.font.Font(font_path, 36)
 
 # Load images
 player_image = pygame.image.load('images/player.png').convert_alpha()
@@ -35,7 +45,13 @@ bullet_image = pygame.image.load('images/bullet.png').convert_alpha()
 bullet_image = pygame.transform.scale(bullet_image, (10, 20))
 
 background_image = pygame.image.load('images/background.png').convert()
-bullet_image = pygame.transform.scale(bullet_image, (screen_width, screen_height))
+background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
+
+# Load the intro screen image
+intro_screen_image = pygame.image.load("images/Soale Stjas.png").convert()
+intro_screen_alpha = 255  # Start with full opacity
+intro_screen_image = pygame.transform.scale(intro_screen_image, (screen_width, screen_height))
+intro_screen_image.set_alpha(intro_screen_alpha)  # Set the opacity of the image
 
 
 # Define the classes
@@ -93,15 +109,16 @@ class Player(pygame.sprite.Sprite):
 class Enemy(Entity):
     def __init__(self, x, y):
         super().__init__(pygame.Surface.copy(enemy_image), x, y)
-        self.speedy = random.uniform(0.5, 4.5)
+        self.speedy = random.uniform(1.0, 4.5)
         self.alpha = 0  # Start with transparency at 0
         self.image.set_alpha(self.alpha)  # Set the transparency of the image
         self.mask = pygame.mask.from_surface(enemy_image)
 
-    def update(self):
+    def update(self, dt):
         self.rect.y += self.speedy
         if self.alpha < 255:  # Increase transparency gradually
-            self.alpha += 2
+            alpha_change = int(255 * (dt / 500.0))  # Calculate alpha change based on elapsed time
+            self.alpha += alpha_change
             if self.alpha > 255:
                 self.alpha = 255
             self.image.set_alpha(self.alpha)  # Set the transparency of the image
@@ -168,6 +185,7 @@ def toggle_fullscreen():
     else:
         screen = pygame.display.set_mode((screen_width, screen_height))
 
+
 # Set up the sprite groups
 all_sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
@@ -183,6 +201,59 @@ all_sprites.add(player)
 
 # Set up the clock
 clock = pygame.time.Clock()
+
+# Set up the intro screen loop
+intro_screen_alpha = 0  # Start with the intro screen image transparent
+intro_screen_start_time = pygame.time.get_ticks()
+intro_screen_running = True
+show_press_any_key_text = False
+while intro_screen_running:
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            intro_screen_running = False
+        elif event.type == pygame.KEYDOWN:
+            intro_screen_running = False
+
+    # Update the intro screen
+    dt = clock.tick(FPS)
+    if intro_screen_alpha < 255:  # Fade in
+        intro_screen_alpha += 255 / FADE_DURATION * dt
+        if intro_screen_alpha > 255:
+            intro_screen_alpha = 255
+            show_press_any_key_text = True
+    intro_screen_image.set_alpha(intro_screen_alpha)  # Set the opacity of the image
+
+    # Draw the intro screen
+    screen.fill(black)
+    screen.blit(intro_screen_image, (0, 0))
+    if show_press_any_key_text:
+        press_any_key_text = font.render("Press any key to start", True, white)
+        press_any_key_text_rect = press_any_key_text.get_rect()
+        press_any_key_text_rect.center = (screen_width // 2, (screen_height // 3) * 2 + (screen_height // 12))  # Centered horizontally and between lower third and fourth of screen
+        screen.blit(press_any_key_text, press_any_key_text_rect)
+    pygame.display.flip()
+
+# Fade out
+while intro_screen_alpha > 0:
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Update the intro screen
+    dt = clock.tick(FPS)
+    intro_screen_alpha -= 255 / FADE_DURATION * dt
+    if intro_screen_alpha < 0:
+        intro_screen_alpha = 0
+    intro_screen_image.set_alpha(intro_screen_alpha)  # Set the opacity of the image
+
+    # Draw the intro screen
+    screen.fill(black)
+    screen.blit(intro_screen_image, (0, 0))
+    pygame.display.flip()
+
+
 
 # Set up the game loop
 print("Starting game...")
@@ -209,8 +280,14 @@ while running:
     # Update the game state
     starfield1.update()
     starfield2.update()
-    starfield3.update()
-    all_sprites.update()
+    starfield3.update()        
+    
+    dt = clock.tick(FPS)
+    for sprite in all_sprites:
+        if isinstance(sprite, Enemy):
+            sprite.update(dt)
+        else:
+            sprite.update()
 
     # Spawn enemies
     if len(enemies) < 10:
@@ -230,7 +307,7 @@ while running:
             running = False
 
     # Draw the screen
-    screen.blit(background_image, (0, 0))
+    screen.blit(background_image, (0, 0)) 
     starfield1.draw(screen)
     starfield2.draw(screen)
     starfield3.draw(screen)
@@ -242,7 +319,7 @@ while running:
     pygame.display.flip()
 
     # Cap the frame rate
-    clock.tick(60)
+    clock.tick(FPS)
 
 # Quit Pygame
 pygame.quit()
