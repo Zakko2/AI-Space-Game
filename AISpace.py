@@ -45,13 +45,16 @@ bullet_image = pygame.image.load('images/bullet.png').convert_alpha()
 bullet_image = pygame.transform.scale(bullet_image, (10, 20))
 
 background_image = pygame.image.load('images/background.png').convert()
-background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
+background_image = pygame.transform.scale(
+    background_image, (screen_width, screen_height))
 
 # Load the intro screen image
 intro_screen_image = pygame.image.load("images/Soale Stjas.png").convert()
 intro_screen_alpha = 255  # Start with full opacity
-intro_screen_image = pygame.transform.scale(intro_screen_image, (screen_width, screen_height))
-intro_screen_image.set_alpha(intro_screen_alpha)  # Set the opacity of the image
+intro_screen_image = pygame.transform.scale(
+    intro_screen_image, (screen_width, screen_height))
+# Set the opacity of the image
+intro_screen_image.set_alpha(intro_screen_alpha)
 
 
 # Define the classes
@@ -69,6 +72,7 @@ class Entity(pygame.sprite.Sprite):
         self.rect.x += self.speedx
         self.rect.y += self.speedy
 
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -80,6 +84,8 @@ class Player(pygame.sprite.Sprite):
         self.score = 0
         self.lives = 3
         self.fire_timer = 0
+        self.life_lost = False
+        self.life_lost_timer = 0
         self.mask = pygame.mask.from_surface(player_image)
 
     def update(self):
@@ -106,6 +112,7 @@ class Player(pygame.sprite.Sprite):
             all_sprites.add(bullet)
             bullets.add(bullet)
 
+
 class Enemy(Entity):
     def __init__(self, x, y):
         super().__init__(pygame.Surface.copy(enemy_image), x, y)
@@ -117,11 +124,13 @@ class Enemy(Entity):
     def update(self, dt):
         self.rect.y += self.speedy
         if self.alpha < 255:  # Increase transparency gradually
-            alpha_change = int(255 * (dt / 500.0))  # Calculate alpha change based on elapsed time
+            # Calculate alpha change based on elapsed time
+            alpha_change = int(255 * (dt / 500.0))
             self.alpha += alpha_change
             if self.alpha > 255:
                 self.alpha = 255
-            self.image.set_alpha(self.alpha)  # Set the transparency of the image
+            # Set the transparency of the image
+            self.image.set_alpha(self.alpha)
 
         if self.rect.top > screen_height:
             self.kill()
@@ -141,6 +150,7 @@ class Bullet(Entity):
             self.kill()
         self.mask = pygame.mask.from_surface(bullet_image)
 
+
 class Star(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -149,6 +159,7 @@ class Star(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
 
 class Starfield:
     def __init__(self, screen_width, screen_height, speed):
@@ -176,12 +187,14 @@ class Starfield:
     def draw(self, screen):
         self.stars.draw(screen)
 
+
 def toggle_fullscreen():
     global fullscreen, screen, screen_width, screen_height
 
     fullscreen = not fullscreen
     if fullscreen:
-        screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+        screen = pygame.display.set_mode(
+            (screen_width, screen_height), pygame.FULLSCREEN)
     else:
         screen = pygame.display.set_mode((screen_width, screen_height))
 
@@ -190,9 +203,12 @@ def toggle_fullscreen():
 all_sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
-starfield1 = Starfield(screen_width, screen_height, speed=random.uniform(0.5, 1.5))
-starfield2 = Starfield(screen_width, screen_height, speed=random.uniform(1.5, 2.5))
-starfield3 = Starfield(screen_width, screen_height, speed=random.uniform(2.5, 3.5))
+starfield1 = Starfield(screen_width, screen_height,
+                       speed=random.uniform(0.5, 1.5))
+starfield2 = Starfield(screen_width, screen_height,
+                       speed=random.uniform(1.5, 2.5))
+starfield3 = Starfield(screen_width, screen_height,
+                       speed=random.uniform(2.5, 3.5))
 
 
 # Set up the player
@@ -222,7 +238,8 @@ while intro_screen_running:
         if intro_screen_alpha > 255:
             intro_screen_alpha = 255
             show_press_any_key_text = True
-    intro_screen_image.set_alpha(intro_screen_alpha)  # Set the opacity of the image
+    # Set the opacity of the image
+    intro_screen_image.set_alpha(intro_screen_alpha)
 
     # Draw the intro screen
     screen.fill(black)
@@ -230,7 +247,9 @@ while intro_screen_running:
     if show_press_any_key_text:
         press_any_key_text = font.render("Press any key to start", True, white)
         press_any_key_text_rect = press_any_key_text.get_rect()
-        press_any_key_text_rect.center = (screen_width // 2, (screen_height // 3) * 2 + (screen_height // 12))  # Centered horizontally and between lower third and fourth of screen
+        # Centered horizontally and between lower third and fourth of screen
+        press_any_key_text_rect.center = (
+            screen_width // 2, (screen_height // 3) * 2 + (screen_height // 12))
         screen.blit(press_any_key_text, press_any_key_text_rect)
     pygame.display.flip()
 
@@ -246,7 +265,8 @@ while intro_screen_alpha > 0:
     intro_screen_alpha -= 255 / FADE_DURATION * dt
     if intro_screen_alpha < 0:
         intro_screen_alpha = 0
-    intro_screen_image.set_alpha(intro_screen_alpha)  # Set the opacity of the image
+    # Set the opacity of the image
+    intro_screen_image.set_alpha(intro_screen_alpha)
 
     # Draw the intro screen
     screen.fill(black)
@@ -254,11 +274,11 @@ while intro_screen_alpha > 0:
     pygame.display.flip()
 
 
-
 # Set up the game loop
 print("Starting game...")
 running = True
 fullscreen = False
+lives_lost_timer = 0
 while running:
     # Handle events
     for event in pygame.event.get():
@@ -267,7 +287,7 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 player.shoot()
-            #elif event.key == pygame.K_f:
+            # elif event.key == pygame.K_f:
             #    toggle_fullscreen()
 
     # Handle user input
@@ -280,8 +300,8 @@ while running:
     # Update the game state
     starfield1.update()
     starfield2.update()
-    starfield3.update()        
-    
+    starfield3.update()
+
     dt = clock.tick(FPS)
     for sprite in all_sprites:
         if isinstance(sprite, Enemy):
@@ -291,7 +311,8 @@ while running:
 
     # Spawn enemies
     if len(enemies) < 10:
-        enemy = Enemy(random.randint(0, screen_width - enemy_image.get_width()), random.randint(-100, -40))
+        enemy = Enemy(random.randint(0, screen_width -
+                      enemy_image.get_width()), random.randint(-100, -40))
         all_sprites.add(enemy)
         enemies.add(enemy)
 
@@ -302,20 +323,32 @@ while running:
 
     hits = pygame.sprite.spritecollide(player, enemies, True)
     for hit in hits:
-        player.lives -= 1
-        if player.lives == 0:
+        player.lives -= 1        
+        lives_lost_timer = pygame.time.get_ticks()  # Update the timer when a life is lost
+        if player.lives == 0:                       
             running = False
 
     # Draw the screen
-    screen.blit(background_image, (0, 0)) 
+    screen.blit(background_image, (0, 0))
     starfield1.draw(screen)
     starfield2.draw(screen)
     starfield3.draw(screen)
     all_sprites.draw(screen)
+
     score_text = font.render("Score: " + str(player.score), True, white)
     screen.blit(score_text, (10, 10))
+
+    # Lives text flashing effect
     lives_text = font.render("Lives: " + str(player.lives), True, white)
     screen.blit(lives_text, (screen_width - lives_text.get_width() - 10, 10))
+
+    # Show the "lives remaining" message if a life was lost in the last 2 seconds
+    if pygame.time.get_ticks() - lives_lost_timer < 2000:
+        lives_remaining_text = font.render("Lives remaining: " + str(player.lives), True, white)
+        lives_remaining_text_rect = lives_remaining_text.get_rect()
+        lives_remaining_text_rect.center = (screen_width // 2, screen_height // 2)
+        screen.blit(lives_remaining_text, lives_remaining_text_rect)
+
     pygame.display.flip()
 
     # Cap the frame rate
