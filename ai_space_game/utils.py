@@ -1,5 +1,5 @@
 import pygame
-from settings import *
+from .settings import *
 
 def toggle_fullscreen(screen, screen_width, screen_height):
 

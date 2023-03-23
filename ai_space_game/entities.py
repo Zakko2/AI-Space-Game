@@ -1,6 +1,6 @@
 import pygame
 import random
-from settings import *
+from .settings import *
 
 class Entity(pygame.sprite.Sprite):
     def __init__(self, image, x, y):

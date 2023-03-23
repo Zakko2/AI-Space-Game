@@ -1,5 +1,6 @@
 import sys
 sys.path.append('C:/Users/el_za/python_projects/AICastle/AI Space Game/ai_space_game/tests')
+sys.path.append('C:/Users/el_za/python_projects/AICastle/AI Space Game')
 
 import unittest
 import pygame

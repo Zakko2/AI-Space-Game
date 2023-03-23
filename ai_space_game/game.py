@@ -1,6 +1,8 @@
 import pygame
 import random
 import os
+import sys
+
 
 from settings import *
 from entities import Player, Enemy, Bullet, Star, Starfield
@@ -9,6 +11,7 @@ from utils import toggle_fullscreen
 
 # System setup, Initialize Pygame, Load images and fonts, etc...
 os.chdir("C:/Users/el_za/python_projects/AICastle/AI Space Game/ai_space_game")
+sys.path.append('C:/Users/el_za/python_projects/AICastle/AI Space Game/ai_space_game/images')
 
 print("initializing pygame")
 pygame.init()
