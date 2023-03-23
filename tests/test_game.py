@@ -1,9 +1,12 @@
-import sys
-sys.path.append('C:/Users/el_za/python_projects/AICastle/AI Space Game/ai_space_game/tests')
-sys.path.append('C:/Users/el_za/python_projects/AICastle/AI Space Game')
-
 import unittest
 import pygame
+import os
+import sys
+from pathlib import Path
+
+# Add the 'ai_space_game' package directory to sys.path
+package_directory = Path(__file__).resolve().parent.parent
+sys.path.append(str(package_directory))
 
 from ai_space_game.entities import Player
 from ai_space_game.settings import *
@@ -17,9 +20,18 @@ class TestPlayer(unittest.TestCase):
         bullets = pygame.sprite.Group()
 
         # Create a Player instance
-        player_image = pygame.image.load("../images/player.png").convert_alpha()
-        bullet_image = pygame.image.load("../images/bullet.png").convert_alpha()
+        PLAYER_IMAGE_PATH = os.path.join(BASE_DIR, "images", "player.png")
+        ENEMY_IMAGE_PATH = os.path.join(BASE_DIR, "images", "enemy.png")
+        BULLET_IMAGE_PATH = os.path.join(BASE_DIR, "images", "bullet.png")
+        BACKGROUND_IMAGE_PATH = os.path.join(BASE_DIR, "images", "background.png")
+        INTRO_SCREEN_IMAGE_PATH = os.path.join(BASE_DIR, "images", "Soale Stjas.png")
+        
+        # Create a Player instance
+        player_image = pygame.image.load(PLAYER_IMAGE_PATH).convert_alpha()
+        bullet_image = pygame.image.load(BULLET_IMAGE_PATH).convert_alpha()
         player = Player(player_image, 800, 600, bullet_image, all_sprites, bullets)
+
+        
 
         # Test movement
         initial_x = player.rect.x

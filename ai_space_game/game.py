@@ -2,11 +2,17 @@ import pygame
 import random
 import os
 import sys
+from pathlib import Path
 
 
-from settings import *
-from entities import Player, Enemy, Bullet, Star, Starfield
-from utils import toggle_fullscreen
+# Add the 'ai_space_game' package directory to sys.path
+package_directory = Path(__file__).resolve().parent.parent
+sys.path.append(str(package_directory))
+
+
+from ai_space_game.settings import *
+from ai_space_game.entities import Player, Enemy, Bullet, Star, Starfield
+from ai_space_game.utils import toggle_fullscreen
 
 
 # System setup, Initialize Pygame, Load images and fonts, etc...
@@ -22,17 +28,12 @@ print("pygame started")
 info = pygame.display.Info()
 screen_width, screen_height = info.current_w, info.current_h
 
-# Calculate the aspect ratio
-aspect_ratio = screen_width / screen_height
 
-scaled_height = SCREEN_HEIGHT
-scaled_width = round(scaled_height * aspect_ratio)
+# Calculate the new screen dimensions
+windowed_width = screen_width // 2
+windowed_height = (screen_height * windowed_width) // screen_width
 
-scale_factor = min(screen_width / scaled_width, screen_height / scaled_height)
-
-screen_width = round(scaled_width * scale_factor)
-screen_height = round(scaled_height * scale_factor)
-screen = pygame.display.set_mode((screen_width, screen_height))
+screen = pygame.display.set_mode((windowed_width, windowed_height))
 pygame.display.set_caption(GAME_NAME)
 
 # Load images
@@ -47,29 +48,45 @@ bullet_image = pygame.transform.scale(bullet_image, (10, 20))
 
 background_image = pygame.image.load(BACKGROUND_IMAGE_PATH).convert()
 background_image = pygame.transform.scale(
-background_image, (screen_width, screen_height))
+background_image, (windowed_width, windowed_height))
 
 # Set up the fonts
 font_path = FONT_PATH
-font = pygame.font.Font(FONT_PATH, FONT_SIZE)
+scaled_font_size = int(FONT_SIZE * windowed_width / screen_width)
+font = pygame.font.Font(FONT_PATH, scaled_font_size)
 
 # Set up the sprite groups
 all_sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
-starfield1 = Starfield(screen_width, screen_height, speed=random.uniform(0.5, 1.5))
-starfield2 = Starfield(screen_width, screen_height, speed=random.uniform(1.5, 2.5))
-starfield3 = Starfield(screen_width, screen_height, speed=random.uniform(2.5, 3.5))
+starfield1 = Starfield(windowed_width, windowed_height, speed=random.uniform(0.5, 1.5))
+starfield2 = Starfield(windowed_width, windowed_height, speed=random.uniform(1.5, 2.5))
+starfield3 = Starfield(windowed_width, windowed_height, speed=random.uniform(2.5, 3.5))
 
 # Set up the player
-player = Player(player_image, screen_width, screen_height, bullet_image, all_sprites, bullets)
+player = Player(player_image, windowed_width, windowed_height, bullet_image, all_sprites, bullets)
 all_sprites.add(player)
 
 # Set up the clock
 clock = pygame.time.Clock()
 
 # Set up the intro screen loop
-intro_screen_image = pygame.image.load(INTRO_SCREEN_IMAGE_PATH).convert()
+intro_screen_image = pygame.image.load(INTRO_SCREEN_IMAGE_PATH).convert_alpha()
+intro_screen_image = pygame.transform.scale(intro_screen_image, (windowed_width, windowed_height))
+
+# Calculate the new size of the intro screen image
+intro_screen_original_width, intro_screen_original_height = intro_screen_image.get_size()
+intro_screen_aspect_ratio = intro_screen_original_width / intro_screen_original_height
+intro_screen_new_height = windowed_height
+intro_screen_new_width = int(intro_screen_new_height * intro_screen_aspect_ratio)
+
+# Resize the intro screen image
+intro_screen_image = pygame.transform.scale(intro_screen_image, (intro_screen_new_width, intro_screen_new_height))
+
+
+
+
+
 intro_screen_alpha = 0  # Start with the intro screen image transparent
 intro_screen_start_time = pygame.time.get_ticks()
 intro_screen_running = True
@@ -94,15 +111,18 @@ while intro_screen_running:
 
     # Draw the intro screen
     screen.fill(BLACK)
+    
+    # Center the intro screen image on the screen
     intro_screen_rect = intro_screen_image.get_rect()
-    intro_screen_rect.center = (screen_width // 2, screen_height // 2)
+    intro_screen_rect.center = (windowed_width // 2, windowed_height // 2)
+    
     screen.blit(intro_screen_image, intro_screen_rect)
     if show_press_any_key_text:
         press_any_key_text = font.render("Press any key to start", True, WHITE)
         press_any_key_text_rect = press_any_key_text.get_rect()
         # Centered horizontally and between lower third and fourth of screen
         press_any_key_text_rect.center = (
-            screen_width // 2, (screen_height // 3) * 2 + (screen_height // 12))
+            windowed_width // 2, (windowed_height // 3) * 2 + (windowed_height // 12))
         screen.blit(press_any_key_text, press_any_key_text_rect)
     pygame.display.flip()
 
@@ -124,9 +144,10 @@ while intro_screen_alpha > 0:
     # Draw the intro screen
     screen.fill(BLACK)
     intro_screen_rect = intro_screen_image.get_rect()
-    intro_screen_rect.center = (screen_width // 2, screen_height // 2)
+    intro_screen_rect.center = (windowed_width // 2, windowed_height // 2)
     screen.blit(intro_screen_image, intro_screen_rect)
     pygame.display.flip()
+
 
 # Set up the game loop
 print("Starting game...")
@@ -193,13 +214,13 @@ while running:
 
     # Lives text flashing effect
     lives_text = font.render("Lives: " + str(player.lives), True, WHITE)
-    screen.blit(lives_text, (screen_width - lives_text.get_width() - 10, 10))
+    screen.blit(lives_text, (windowed_width - lives_text.get_width() - 10, 10))
 
     # Show the "lives remaining" message if a life was lost in the last 2 seconds
     if pygame.time.get_ticks() - lives_lost_timer < 2000:
         lives_remaining_text = font.render("Lives remaining: " + str(player.lives), True, WHITE)
         lives_remaining_text_rect = lives_remaining_text.get_rect()
-        lives_remaining_text_rect.center = (screen_width // 2, screen_height // 2)
+        lives_remaining_text_rect.center = (windowed_width // 2, windowed_height // 2)
         screen.blit(lives_remaining_text, lives_remaining_text_rect)
 
     pygame.display.flip()

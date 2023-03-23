@@ -1,7 +1,7 @@
 import pygame
-from .settings import *
+from ai_space_game.settings import *
 
-def toggle_fullscreen(screen, screen_width, screen_height):
+def toggle_fullscreen(screen, screen_width, screen_height, fullscreen):
 
     fullscreen = not fullscreen
     if fullscreen:
