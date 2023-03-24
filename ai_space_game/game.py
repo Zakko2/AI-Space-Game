@@ -11,7 +11,13 @@ sys.path.append(str(package_directory))
 
 
 from ai_space_game.settings import *
-from ai_space_game.entities import Player, Enemy, Bullet, Star, Starfield
+from ai_space_game.player import *
+from ai_space_game.enemy import *
+from ai_space_game.bullet import *
+from ai_space_game.star import *
+from ai_space_game.starfield import *
+from ai_space_game.music import *
+from ai_space_game.sound import *
 from ai_space_game.utils import toggle_fullscreen
 
 
@@ -21,13 +27,17 @@ sys.path.append('C:/Users/el_za/python_projects/AICastle/AI Space Game/ai_space_
 
 print("initializing pygame")
 pygame.init()
+pygame.mixer.init()
 print("pygame started")
+
+# Load and start the music
+music = Music(MUSIC_PATH, volume=0.5)
+music.play()
 
 # Set up the display
 # Get the user's display size
 info = pygame.display.Info()
 screen_width, screen_height = info.current_w, info.current_h
-
 
 # Calculate the new screen dimensions
 windowed_width = screen_width // 2
@@ -50,9 +60,25 @@ background_image = pygame.image.load(BACKGROUND_IMAGE_PATH).convert()
 background_image = pygame.transform.scale(
 background_image, (windowed_width, windowed_height))
 
+# Load sounds
+sound_explosion_001 = Sound(EXPLOSION_001_PATH, volume=0.25)
+sound_explosion_002 = Sound(EXPLOSION_002_PATH, volume=0.25)
+sound_shot_01 = Sound(SHOT_01_PATH, volume=0.25)
+sound_shot_02 = Sound(SHOT_02_PATH, volume=0.25)
+sound_shot_03 = Sound(SHOT_03_PATH, volume=0.25)
+sound_shot_04 = Sound(SHOT_04_PATH, volume=0.25)
+
+def play_random_explosion_sound():
+    random_sound = random.choice([sound_explosion_001, sound_explosion_002])
+    random_sound.play()
+
+#def play_shot():
+#    random_sound = random.choice([sound_explosion_001, sound_explosion_002])
+#    random_sound.play()
+
 # Set up the fonts
 font_path = FONT_PATH
-scaled_font_size = int(FONT_SIZE * windowed_width / screen_width)
+scaled_font_size = int(FONT_SIZE * windowed_width / windowed_width)
 font = pygame.font.Font(FONT_PATH, scaled_font_size)
 
 # Set up the sprite groups
@@ -162,8 +188,11 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 player.shoot()
-            # elif event.key == pygame.K_f:
-            #    toggle_fullscreen()
+                sound_shot_02.play()
+            elif event.key == pygame.K_f:
+                screen = toggle_fullscreen(screen, windowed_width, windowed_height)
+            elif event.key == pygame.K_q:
+                running = False
 
     # Handle user input
     keys = pygame.key.get_pressed()
@@ -171,6 +200,10 @@ while running:
         player.move_left()
     if keys[pygame.K_RIGHT]:
         player.move_right()
+    if keys[pygame.K_UP]:
+        player.move_up()
+    if keys[pygame.K_DOWN]:
+        player.move_down()
 
     # Update the game state
     starfield1.update()
@@ -184,23 +217,41 @@ while running:
         else:
             sprite.update()
 
+
     # Spawn enemies
-    if len(enemies) < 10:
-        enemy = Enemy(random.randint(0, screen_width - enemy_image.get_width()), random.randint(-100, -40), enemy_image, screen_width, screen_height)
+    def calculate_enemy_count(score):
+        base_enemies = 10
+        additional_enemies = score // 200
+        return base_enemies + additional_enemies
+
+
+    if len(enemies) < calculate_enemy_count(player.score):
+        enemy = Enemy(
+            random.randint(0, windowed_width - enemy_image.get_width()),
+            random.randint(-100, -40),
+            enemy_image,
+            windowed_width,
+            windowed_height
+        )
         all_sprites.add(enemy)
         enemies.add(enemy)
 
     # Check for collisions
-    hits = pygame.sprite.groupcollide(enemies, bullets, True, True)
+    hits = pygame.sprite.groupcollide(enemies, bullets, False, True)
     for hit in hits:
-        player.score += 10
+        if not hit.dead:
+            hit.die() 
+            player.score += 10
+            play_random_explosion_sound()
 
     hits = pygame.sprite.spritecollide(player, enemies, True)
     for hit in hits:
-        player.lives -= 1        
-        lives_lost_timer = pygame.time.get_ticks()  # Update the timer when a life is lost
-        if player.lives == 0:                       
-            running = False
+        if not hit.dead:
+            player.lives -= 1        
+            lives_lost_timer = pygame.time.get_ticks()  # Update the timer when a life is lost
+            play_random_explosion_sound()
+            if player.lives == 0:                       
+                running = False
 
     # Draw the screen
     screen.blit(background_image, (0, 0))
@@ -222,6 +273,12 @@ while running:
         lives_remaining_text_rect = lives_remaining_text.get_rect()
         lives_remaining_text_rect.center = (windowed_width // 2, windowed_height // 2)
         screen.blit(lives_remaining_text, lives_remaining_text_rect)
+
+   # Draw enemy count text
+    #enemy_count_text = font.render("Enemies: " + str(len(enemies)), True, WHITE)
+    #enemy_count_text_rect = enemy_count_text.get_rect()
+    #enemy_count_text_rect.topright = (windowed_width - 10, lives_text.get_height() + 20)
+    #screen.blit(enemy_count_text, enemy_count_text_rect)
 
     pygame.display.flip()
 

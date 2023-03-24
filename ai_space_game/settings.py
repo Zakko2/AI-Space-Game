@@ -17,7 +17,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 # Font settings
-FONT_PATH = "fonts/ARCADE_I.TTF"
+FONT_PATH = os.path.join(BASE_DIR, "fonts", "ARCADE_I.TTF")
 FONT_SIZE = 36
 
 # Image paths
@@ -26,6 +26,17 @@ ENEMY_IMAGE_PATH = os.path.join(BASE_DIR, "images", "enemy.png")
 BULLET_IMAGE_PATH = os.path.join(BASE_DIR, "images", "bullet.png")
 BACKGROUND_IMAGE_PATH = os.path.join(BASE_DIR, "images", "background.png")
 INTRO_SCREEN_IMAGE_PATH = os.path.join(BASE_DIR, "images", "Soale Stjas.png")
+
+# Music
+MUSIC_PATH = os.path.join(BASE_DIR, "sounds", "Aries_Beats_-_Neon_Lights.ogg")
+
+# Sounds
+EXPLOSION_001_PATH = os.path.join(BASE_DIR, "sounds", "Bluezone_BC0244_explosion_003_01.wav")
+EXPLOSION_002_PATH = os.path.join(BASE_DIR, "sounds", "Bluezone_BC0288_combat_drone_jet_texture_sonic_boom_003.wav")
+SHOT_01_PATH       = os.path.join(BASE_DIR, "sounds", "Bluezone_BC0284_soundwave_weapon_scifi_shot_low_001.wav")
+SHOT_02_PATH       = os.path.join(BASE_DIR, "sounds", "Bluezone_BC0286_invader_weapon_scifi_shot_002.wav")
+SHOT_03_PATH       = os.path.join(BASE_DIR, "sounds", "Bluezone_BC0286_invader_weapon_scifi_shot_007.wav")
+SHOT_04_PATH       = os.path.join(BASE_DIR, "sounds", "Bluezone_BC0288_combat_drone_weapon_scifi_shot_001.wav")
 
 # Window Caption/Game Name
 GAME_NAME = 'Soale Stjas (AI Space Game)'
