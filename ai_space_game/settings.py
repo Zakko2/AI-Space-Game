@@ -26,6 +26,7 @@ ENEMY_IMAGE_PATH = os.path.join(BASE_DIR, "images", "enemy.png")
 BULLET_IMAGE_PATH = os.path.join(BASE_DIR, "images", "bullet.png")
 BACKGROUND_IMAGE_PATH = os.path.join(BASE_DIR, "images", "background.png")
 INTRO_SCREEN_IMAGE_PATH = os.path.join(BASE_DIR, "images", "Soale Stjas.png")
+PILOT_PORTRAIT_PATH = os.path.join(BASE_DIR, "images\pilot_female\character2", "sad_0.33_10_f38545eb643f41d29f8943456cb4ce6d.png")
 
 # Music
 MUSIC_PATH = os.path.join(BASE_DIR, "sounds", "Aries_Beats_-_Neon_Lights.ogg")

@@ -1,6 +1,5 @@
 import pygame
 import random
-import os
 import sys
 from pathlib import Path
 
@@ -43,6 +42,10 @@ screen_width, screen_height = info.current_w, info.current_h
 windowed_width = screen_width // 2
 windowed_height = (screen_height * windowed_width) // screen_width
 
+# Calculate the game screen area and pilot comms area
+pilot_comms_area_width = 200
+game_area_width = windowed_width - pilot_comms_area_width
+
 screen = pygame.display.set_mode((windowed_width, windowed_height))
 pygame.display.set_caption(GAME_NAME)
 
@@ -60,13 +63,23 @@ background_image = pygame.image.load(BACKGROUND_IMAGE_PATH).convert()
 background_image = pygame.transform.scale(
 background_image, (windowed_width, windowed_height))
 
+pilot_portrait = pygame.image.load(PILOT_PORTRAIT_PATH).convert_alpha()
+pilot_width, pilot_height = pilot_portrait.get_size()
+pilot_portrait = pygame.transform.scale(pilot_portrait, (pilot_width/2, pilot_height/2))
+
+
+# Set up the game area and left-hand area surfaces
+game_area = pygame.Surface((game_area_width, screen_height))
+left_hand_area = pygame.Surface((screen_width - game_area_width, screen_height))
+
+
 # Load sounds
-sound_explosion_001 = Sound(EXPLOSION_001_PATH, volume=0.25)
-sound_explosion_002 = Sound(EXPLOSION_002_PATH, volume=0.25)
-sound_shot_01 = Sound(SHOT_01_PATH, volume=0.25)
-sound_shot_02 = Sound(SHOT_02_PATH, volume=0.25)
-sound_shot_03 = Sound(SHOT_03_PATH, volume=0.25)
-sound_shot_04 = Sound(SHOT_04_PATH, volume=0.25)
+sound_explosion_001 = Sound(EXPLOSION_001_PATH, volume=0.05)
+sound_explosion_002 = Sound(EXPLOSION_002_PATH, volume=0.05)
+sound_shot_01 = Sound(SHOT_01_PATH, volume=0.05)
+sound_shot_02 = Sound(SHOT_02_PATH, volume=0.05)
+sound_shot_03 = Sound(SHOT_03_PATH, volume=0.05)
+sound_shot_04 = Sound(SHOT_04_PATH, volume=0.05)
 
 def play_random_explosion_sound():
     random_sound = random.choice([sound_explosion_001, sound_explosion_002])
@@ -109,8 +122,18 @@ intro_screen_new_width = int(intro_screen_new_height * intro_screen_aspect_ratio
 # Resize the intro screen image
 intro_screen_image = pygame.transform.scale(intro_screen_image, (intro_screen_new_width, intro_screen_new_height))
 
+def draw_pilot_area(screen, pilot_image):
+    pilot_area_width = 200
+    pilot_area_height = windowed_height
 
+    # Draw a background rectangle for the pilot area
+    pygame.draw.rect(screen, (50, 50, 50), (game_area_width, 0, pilot_area_width, pilot_area_height))
 
+    # Draw the pilot portrait
+    portrait_rect = pilot_portrait.get_rect()
+    portrait_rect.x = game_area_width + (pilot_area_width - portrait_rect.width) // 2
+    portrait_rect.y = 20
+    screen.blit(pilot_portrait, portrait_rect)
 
 
 intro_screen_alpha = 0  # Start with the intro screen image transparent
@@ -181,6 +204,10 @@ running = True
 fullscreen = False
 lives_lost_timer = 0
 while running:
+
+    # Cap the frame rate
+    clock.tick(FPS)
+
     # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -254,36 +281,45 @@ while running:
                 running = False
 
     # Draw the screen
-    screen.blit(background_image, (0, 0))
-    starfield1.draw(screen)
-    starfield2.draw(screen)
-    starfield3.draw(screen)
-    all_sprites.draw(screen)
+
+    # Update the game screen
+    screen.fill((0, 0, 0))
+
+    
+
+    # Calculate the game area position on the x-axis
+    game_area_x = 0
+
+    # Draw the background, starfields, and all_sprites on the game_area
+    game_area.blit(background_image, (0, 0))
+    starfield1.draw(game_area)
+    starfield2.draw(game_area)
+    starfield3.draw(game_area)
+    all_sprites.draw(game_area)
+
+    # Draw the game area and left-hand area on the main screen
+    screen.blit(game_area, (game_area_x, 0))
 
     score_text = font.render("Score: " + str(player.score), True, WHITE)
-    screen.blit(score_text, (10, 10))
+    game_area.blit(score_text, (10, 10))
 
     # Lives text flashing effect
     lives_text = font.render("Lives: " + str(player.lives), True, WHITE)
-    screen.blit(lives_text, (windowed_width - lives_text.get_width() - 10, 10))
+    screen.blit(lives_text, (game_area_x + game_area.get_width() - lives_text.get_width() - 10, 10))
 
     # Show the "lives remaining" message if a life was lost in the last 2 seconds
     if pygame.time.get_ticks() - lives_lost_timer < 2000:
         lives_remaining_text = font.render("Lives remaining: " + str(player.lives), True, WHITE)
         lives_remaining_text_rect = lives_remaining_text.get_rect()
-        lives_remaining_text_rect.center = (windowed_width // 2, windowed_height // 2)
+        lives_remaining_text_rect.center = (game_area_x + game_area.get_width() // 2, game_area.get_height() // 2)
         screen.blit(lives_remaining_text, lives_remaining_text_rect)
 
-   # Draw enemy count text
-    #enemy_count_text = font.render("Enemies: " + str(len(enemies)), True, WHITE)
-    #enemy_count_text_rect = enemy_count_text.get_rect()
-    #enemy_count_text_rect.topright = (windowed_width - 10, lives_text.get_height() + 20)
-    #screen.blit(enemy_count_text, enemy_count_text_rect)
+    # Draw the pilot area
+    draw_pilot_area(screen, PILOT_PORTRAIT_PATH)
 
     pygame.display.flip()
 
-    # Cap the frame rate
-    clock.tick(FPS)
+
 
 # Quit Pygame
 pygame.quit()

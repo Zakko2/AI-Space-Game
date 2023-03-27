@@ -1,5 +1,4 @@
 import pygame
-import random
 from ai_space_game.settings import *
 from ai_space_game.entity import *
 from ai_space_game.bullet import *
