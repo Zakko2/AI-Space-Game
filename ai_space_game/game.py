@@ -61,7 +61,7 @@ bullet_image = pygame.transform.scale(bullet_image, (10, 20))
 
 background_image = pygame.image.load(BACKGROUND_IMAGE_PATH).convert()
 background_image = pygame.transform.scale(
-background_image, (windowed_width, windowed_height))
+background_image, (game_area_width, windowed_height))
 
 pilot_portrait = pygame.image.load(PILOT_PORTRAIT_PATH).convert_alpha()
 pilot_width, pilot_height = pilot_portrait.get_size()
@@ -103,7 +103,7 @@ starfield2 = Starfield(windowed_width, windowed_height, speed=random.uniform(1.5
 starfield3 = Starfield(windowed_width, windowed_height, speed=random.uniform(2.5, 3.5))
 
 # Set up the player
-player = Player(player_image, windowed_width, windowed_height, bullet_image, all_sprites, bullets)
+player = Player(player_image, game_area_width, windowed_height, bullet_image, all_sprites, bullets)
 all_sprites.add(player)
 
 # Set up the clock
@@ -248,16 +248,16 @@ while running:
     # Spawn enemies
     def calculate_enemy_count(score):
         base_enemies = 10
-        additional_enemies = score // 200
+        additional_enemies = score // 10 
         return base_enemies + additional_enemies
 
 
     if len(enemies) < calculate_enemy_count(player.score):
         enemy = Enemy(
-            random.randint(0, windowed_width - enemy_image.get_width()),
+            random.randint(0, game_area_width - enemy_image.get_width()),
             random.randint(-100, -40),
             enemy_image,
-            windowed_width,
+            game_area_width,
             windowed_height
         )
         all_sprites.add(enemy)
