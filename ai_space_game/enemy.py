@@ -38,13 +38,13 @@ class Enemy(Entity):
         self.mask = pygame.mask.from_surface(self.image)
 
         if self.dead:
-            self.angle += self.spin_speed
-            self.image = pygame.transform.rotate(self.image, self.angle)
-            self.rect = self.image.get_rect(center=self.rect.center)
-            self.rect.y += self.downward_speed
+            #self.angle += self.spin_speed
+            #self.image = pygame.transform.rotate(self.image, self.angle)
+            #self.rect = self.image.get_rect(center=self.rect.center)
+            #self.rect.y += self.downward_speed
 
-            self.alpha -= 255 / (2 * 1000) * dt
-            if self.alpha < 0:
+            #self.alpha -= 255 / (2 * 1000) * dt
+            #if self.alpha < 0:
                 self.kill()
-            else:
-                self.image.set_alpha(self.alpha)
+            #else:
+            #    self.image.set_alpha(self.alpha)

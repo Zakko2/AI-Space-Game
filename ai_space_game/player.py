@@ -1,7 +1,7 @@
 import pygame
-from ai_space_game.settings import *
-from ai_space_game.entity import *
-from ai_space_game.bullet import *
+from settings import *
+from entity import *
+from bullet import *
 
 class Player(pygame.sprite.Sprite):
     """
@@ -73,7 +73,7 @@ class Player(pygame.sprite.Sprite):
     def can_fire(self):
         # Check if enough time has passed since the last shot
         time_since_last_fire = pygame.time.get_ticks() - self.fire_timer
-        if time_since_last_fire >= 1000 / 3:  # 3 shots per second
+        if time_since_last_fire >= 1000 / 10:  # 3 shots per second
             self.fire_timer = pygame.time.get_ticks()
             return True
         else:

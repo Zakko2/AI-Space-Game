@@ -4,11 +4,13 @@ import sys
 from pathlib import Path
 
 
+
 # Add the 'ai_space_game' package directory to sys.path
 package_directory = Path(__file__).resolve().parent.parent
 sys.path.append(str(package_directory))
 
-
+from ai_space_game.initialize import initialize_game
+from ai_space_game.initialize import setup_font
 from ai_space_game.settings import *
 from ai_space_game.player import *
 from ai_space_game.enemy import *
@@ -17,12 +19,10 @@ from ai_space_game.star import *
 from ai_space_game.starfield import *
 from ai_space_game.music import *
 from ai_space_game.sound import *
+from ai_space_game.texttypewriter import *
 from ai_space_game.utils import toggle_fullscreen
 
 
-# System setup, Initialize Pygame, Load images and fonts, etc...
-#os.chdir("C:/Users/el_za/python_projects/AI Space Game/ai_space_game")
-#sys.path.append('C:/Users/el_za/python_projects/AI Space Game/ai_space_game/images')
 
 print("initializing pygame")
 pygame.init()
@@ -48,6 +48,8 @@ game_area_width = windowed_width - pilot_comms_area_width
 
 screen = pygame.display.set_mode((windowed_width, windowed_height))
 pygame.display.set_caption(GAME_NAME)
+
+
 
 # Load images
 player_image = pygame.image.load(PLAYER_IMAGE_PATH).convert_alpha()
@@ -85,14 +87,10 @@ def play_random_explosion_sound():
     random_sound = random.choice([sound_explosion_001, sound_explosion_002])
     random_sound.play()
 
-#def play_shot():
-#    random_sound = random.choice([sound_explosion_001, sound_explosion_002])
-#    random_sound.play()
+# System setup, Initialize Pygame, Load images and fonts, etc...
+font = setup_font(windowed_width)
+player, bullets, enemies, text_typewriter, stage_manager = initialize_game(screen, font)
 
-# Set up the fonts
-font_path = FONT_PATH
-scaled_font_size = int(FONT_SIZE * windowed_width / windowed_width)
-font = pygame.font.Font(FONT_PATH, scaled_font_size)
 
 # Set up the sprite groups
 all_sprites = pygame.sprite.Group()
@@ -122,18 +120,26 @@ intro_screen_new_width = int(intro_screen_new_height * intro_screen_aspect_ratio
 # Resize the intro screen image
 intro_screen_image = pygame.transform.scale(intro_screen_image, (intro_screen_new_width, intro_screen_new_height))
 
-def draw_pilot_area(screen, pilot_image):
-    pilot_area_width = 200
-    pilot_area_height = windowed_height
 
-    # Draw a background rectangle for the pilot area
-    pygame.draw.rect(screen, (50, 50, 50), (game_area_width, 0, pilot_area_width, pilot_area_height))
+pilot_area_width = 200
+pilot_area_height = windowed_height
 
-    # Draw the pilot portrait
-    portrait_rect = pilot_portrait.get_rect()
-    portrait_rect.x = game_area_width + (pilot_area_width - portrait_rect.width) // 2
-    portrait_rect.y = 20
-    screen.blit(pilot_portrait, portrait_rect)
+
+pygame.draw.rect(screen, (50, 50, 50), (game_area_width, 0, pilot_area_width, pilot_area_height))
+
+# Draw the pilot portrait
+portrait_rect = pilot_portrait.get_rect()
+portrait_rect.x = game_area_width + (pilot_area_width - portrait_rect.width) // 2
+portrait_rect.y = 20
+screen.blit(pilot_portrait, portrait_rect)
+
+# # Render and draw the text below the pilot portrait
+# text_surface = font.render(text, True, WHITE)
+# text_rect = text_surface.get_rect()
+# text_rect.x = (pilot_area_width - text_rect.width) // 2
+# text_rect.y = portrait_rect.y + portrait_rect.height + 10  # Adjust the vertical spacing as needed
+# screen.blit(text_surface, text_rect)
+
 
 
 intro_screen_alpha = 0  # Start with the intro screen image transparent
@@ -198,6 +204,12 @@ while intro_screen_alpha > 0:
     pygame.display.flip()
 
 
+# Create an instance of TextTypewriter
+typewriter = TextTypewriter(font, "This is the script text.", WHITE, 10)  # 10 characters per second
+
+
+
+
 # Set up the game loop
 print("Starting game...")
 running = True
@@ -213,10 +225,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                player.shoot()
-                sound_shot_02.play()
-            elif event.key == pygame.K_f:
+            if event.key == pygame.K_f:
                 screen = toggle_fullscreen(screen, windowed_width, windowed_height)
             elif event.key == pygame.K_q:
                 running = False
@@ -231,6 +240,10 @@ while running:
         player.move_up()
     if keys[pygame.K_DOWN]:
         player.move_down()
+    # Handle continuous shooting
+    if keys[pygame.K_SPACE]:
+        player.shoot()
+        sound_shot_02.play()
 
     # Update the game state
     starfield1.update()
@@ -285,8 +298,6 @@ while running:
     # Update the game screen
     screen.fill((0, 0, 0))
 
-    
-
     # Calculate the game area position on the x-axis
     game_area_x = 0
 
@@ -314,8 +325,16 @@ while running:
         lives_remaining_text_rect.center = (game_area_x + game_area.get_width() // 2, game_area.get_height() // 2)
         screen.blit(lives_remaining_text, lives_remaining_text_rect)
 
-    # Draw the pilot area
-    draw_pilot_area(screen, PILOT_PORTRAIT_PATH)
+    # Draw the pilot area with the desired text
+    # Update the typewriter in the game loop
+    typewriter.update(dt)
+
+    # Draw the typewriter text in the pilot area
+    #typewriter.draw(screen, text_rect.x, text_rect.y)
+    typewriter.draw(screen, 200, 200)
+    
+    script_text = "This is the script text."
+    #draw_pilot_area(screen, PILOT_PORTRAIT_PATH, script_text)
 
     pygame.display.flip()
 
